@@ -1,0 +1,80 @@
+{
+  "_about": "Every VisRetain setting. Scripts read this file; nothing is hard-coded. Each result file stores a copy of the config it was produced with.",
+
+  "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+
+  "image": {
+    "_why": "Qwen's own pixel budget (passed as size=). 401408 px = 512 x 28 x 28, so at most ~512 visual tokens, the scale of the pilot images. Note: the documented max_pixels= argument is silently ignored in transformers 5.11; only size= works (STAGES.md, stage 1).",
+    "min_pixels": 3136,
+    "max_pixels": 401408
+  },
+
+  "generation": {
+    "max_new_tokens": 160,
+    "default_question": "Describe this image.",
+    "prompt_suffix": " Explain your reasoning step by step, describing what you see in detail.",
+    "_why_suffix": "Forces long answers: a short answer gives one eviction event and no timeline."
+  },
+
+  "quant": {
+    "scheme": "kivi",
+    "group": 32,
+    "bits": [16, 4, 2],
+    "_why": "KIVI-style: keys rounded per channel within blocks of 32 tokens. 16 = no rounding."
+  },
+
+  "eviction": {
+    "keep_frac": 0.7,
+    "recent_window": 32,
+    "_why": "Cache budget = keep_frac x prompt length. The most recent tokens are never evicted (standard practice)."
+  },
+
+  "evidence": {
+    "window_frac": 0.25,
+    "top_frac": 0.10,
+    "min_steps": 60,
+    "_why": "Evidence = visual tokens attended a lot in the last window_frac of the answer but little in the first. top_frac of visual tokens are kept. Answers shorter than min_steps are flagged, not measured."
+  },
+
+  "stats": {
+    "alpha": 0.05,
+    "_why": "Significance threshold for the paired Wilcoxon tests. The results page words its verdicts from this."
+  },
+
+  "layers": [0, 5, 10, 15, 20, 25, 30, 35],
+  "display_layer": 15,
+
+  "stage1": {
+    "occlusion_squares": 24,
+    "occlusion_seed": 0,
+    "offline_pilot": 5,
+    "react_frac": 0.10,
+    "_why": "Squares changed per image in the causal test (check 1.5). offline_pilot = which pilot image the offline stages page shows (index into pilot.items; 5 = the skier). react_frac = on the page, a note counts as having reacted if it changed by at least this fraction of the strongest reaction (display only)."
+  },
+
+  "stage2": {
+    "max_new_tokens": 60,
+    "check_steps": [1, 10, 30, 59],
+    "_why": "A shorter answer than the full experiment, so the page responds in ~half a minute. check_steps = decode steps at which every layer is compared with the model's reference and real output (steps past the answer's end are skipped)."
+  },
+
+  "pilot": {
+    "_why": "COCO val2017 images used for batch runs; question text chosen to force long descriptive answers.",
+    "url": "http://images.cocodataset.org/val2017/{id:012d}.jpg",
+    "cache_dir": "data/pilot",
+    "items": [
+      [139, "Describe this room and every object you can see in it."],
+      [285, "What animal is this and what is its surroundings like?"],
+      [632, "Describe the scene, the furniture and any objects on the surfaces."],
+      [724, "What is in this image, and what is the weather and setting?"],
+      [776, "Describe everything in this picture and how the items relate."],
+      [785, "What is the person doing and what equipment are they using?"],
+      [802, "Describe the people, their clothing and what they are doing."],
+      [872, "What objects are in this scene and where is each one placed?"],
+      [885, "Describe the environment and any animals or people present."],
+      [39769, "What animals are shown, where are they, and what surrounds them?"]
+    ]
+  },
+
+  "server": { "port": 8765, "max_upload_mb": 18 }
+}
