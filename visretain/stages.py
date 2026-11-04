@@ -14,9 +14,9 @@ import torch
 import torchvision.transforms.v2.functional as TF
 from PIL import Image
 
-import run_timeline as rt
-import visretain as vr
-from cfg import CFG
+from . import run_timeline as rt
+from . import core as vr
+from .cfg import CFG
 
 
 def _b64(img, fmt="PNG"):

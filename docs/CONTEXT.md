@@ -2,8 +2,8 @@
 
 Read this first if you are new to the project. It explains the problem, the vocabulary, where
 the project sits in the literature, how we work, what has been found so far, and what has been
-decided. Detailed records are in [`STAGES.md`](../STAGES.md) (stage-by-stage log),
-[`PLAN.md`](../PLAN.md) and [`FINDINGS.md`](../FINDINGS.md).
+decided. Detailed records are in [`STAGES.md`](STAGES.md) (stage-by-stage log),
+[`PLAN.md`](PLAN.md) and [`FINDINGS.md`](FINDINGS.md).
 
 ## 1. The problem
 

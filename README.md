@@ -25,12 +25,12 @@ its attention and KV cache, and is built and **verified one stage at a time**.
 
 The instrument follows the model's own flow. Each stage is researched, its pass criteria are
 written down **before** its checks are built, then it is verified on the real model across 13
-images (10 photos plus a huge photo, a tiny image and an 8:1 panorama). Full log: [`STAGES.md`](STAGES.md).
+images (10 photos plus a huge photo, a tiny image and an 8:1 panorama). Full log: [`docs/STAGES.md`](docs/STAGES.md).
 
 | Stage | What | Status |
 |---|---|---|
-| 1 | Image → visual tokens: which square of the image each cached token stands for | **Verified** — 8/8 checks on 13/13 images ([report](STAGE1_REPORT.md)) |
-| 2 | Attention: the attention we compute is exactly the model's own | **Verified** — 6/6 checks on 13/13 images ([report](STAGE2_REPORT.md)) |
+| 1 | Image → visual tokens: which square of the image each cached token stands for | **Verified** — 8/8 checks on 13/13 images ([report](reports/STAGE1_REPORT.md)) |
+| 2 | Attention: the attention we compute is exactly the model's own | **Verified** — 6/6 checks on 13/13 images ([report](reports/STAGE2_REPORT.md)) |
 | 3 | Rounding the cache (FP16 / INT4 / INT2) | Next |
 | 4 | Eviction at full precision | Next |
 | 5 | Eviction with rounding | Next |
@@ -39,12 +39,12 @@ images (10 photos plus a huge photo, a tiny image and an 8:1 panorama). Full log
 
 **Before committing further, a kill test** decides go / pivot / stop under realistic conditions:
 the model describes a photo with limited, rounded memory, *then* is asked a GQA question about a
-detail, scored against the human answer. See [`PLAN.md`](PLAN.md).
+detail, scored against the human answer. See [`docs/PLAN.md`](docs/PLAN.md).
 
 An exploratory full pipeline (the `/full` demo) ran ahead of this verification. Its early numbers:
 rounding changes 8.8% (INT4) and 33.5% (INT2) of what gets evicted, yet does **not** make
 late-needed evidence get lost more often — about 80% of it is lost even at full precision
-([`FINDINGS.md`](FINDINGS.md)). Treat these as preliminary until stages 3–7 are verified.
+([`docs/FINDINGS.md`](docs/FINDINGS.md)). Treat these as preliminary until stages 3–7 are verified.
 
 ---
 
@@ -59,6 +59,8 @@ git clone https://github.com/dhanush-sr/visretain.git
 cd visretain
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+
+# run every command from the repo root
 
 # optional, for the browser tests
 playwright install chrome     # or skip: the tests use an installed Google Chrome if present
@@ -96,26 +98,26 @@ In the live app:
 
 ### Verification
 
-Each needs the GPU free (stop the app first).
+Each needs the GPU free (stop the app first), except the self-check.
 
 | Command | What it checks | Time |
 |---|---|---|
-| `python3 visretain.py` | self-check of the quantizer and metrics (no model) | seconds |
-| `python3 test_stage1.py` | stage 1, all checks on 13 images → `STAGE1_REPORT.md` | ~30 min |
-| `python3 test_stage2.py` | stage 2, all checks + negative controls on 13 images → `STAGE2_REPORT.md` | ~8 min |
-| `python3 test_pipeline.py` | non-interference, determinism, live = batch, size cap, server edge cases → `TEST_REPORT.md` | ~5 min |
-| `python3 test_browser.py` | the live app in a real browser (needs `python3 app.py` running) | ~3 min |
+| `python -m visretain.core` | self-check of the quantizer and metrics (no model) | seconds |
+| `python -m tests.test_stage1` | stage 1, all checks on 13 images → `reports/STAGE1_REPORT.md` | ~30 min |
+| `python -m tests.test_stage2` | stage 2, all checks + negative controls on 13 images → `reports/STAGE2_REPORT.md` | ~8 min |
+| `python -m tests.test_pipeline` | non-interference, determinism, live = batch, size cap, server edge cases → `reports/TEST_REPORT.md` | ~5 min |
+| `python -m tests.test_browser` | the live app in a real browser (needs `python -m visretain.app` running) | ~3 min |
 
 ### Experiments and builds
 
 | Command | What it does |
 |---|---|
-| `python3 run_timeline.py --items 8` | full-pipeline batch on the pilot photos → `results_timeline/` |
-| `python3 run_timeline.py --image photo.jpg --question "…"` | the same on your own image |
-| `python3 build_demo.py` | rebuild the offline full-pipeline page |
-| `python3 build_stages.py` | rebuild the offline stages page (~25 min: precomputes every square) |
-| `python3 run_kill_test.py` | earlier ranking-only experiment (shadow ranking), kept for the record |
-| `python3 analyze_acc.py results_acc` | statistics for that experiment |
+| `python -m visretain.run_timeline --items 8` | full-pipeline batch on the pilot photos → `results/timeline/` |
+| `python -m visretain.run_timeline --image photo.jpg --question "…"` | the same on your own image |
+| `python -m visretain.build_demo` | rebuild the offline full-pipeline page |
+| `python -m visretain.build_stages` | rebuild the offline stages page (~25 min: precomputes every square) |
+| `python -m legacy.run_kill_test` | earlier ranking-only experiment (shadow ranking), kept for the record |
+| `python -m legacy.analyze_acc` | statistics for that experiment |
 
 ---
 
@@ -135,24 +137,29 @@ Each needs the GPU free (stop the app first).
 ## Repository layout
 
 ```
+README.md            this file
 config.json          every setting
-cfg.py               loads config.json
-visretain.py         quantizers, scoring, rank-agreement metrics (+ self-check)
-run_timeline.py      model loading, attention hook, counterfactual eviction, run records
-stages.py            stage 1 and stage 2 verification (data + checks)
-stages_page.py       the stages page (HTML/JS)
-app.py               local web server: stages page, full pipeline, live runs
-build_demo.py        full-pipeline page builder
-build_stages.py      offline stages page builder
-demo.sh              launcher
-test_*.py            verification suites
-STAGES.md            stage-by-stage research, decisions, pass criteria, results
-PLAN.md              plan and open decisions
-FINDINGS.md          exploratory findings (before stage-by-stage verification)
-*_REPORT*.md         test reports (STAGE1_REPORT_v1.md = the first, failed version of check 1.5)
-results_*/           result records (JSON) backing the reports and pages
+requirements.txt
+demo.sh              launcher: live app, or offline pages
+visretain/           the instrument (run as python -m visretain.<module>)
+  cfg.py             settings and folder paths
+  core.py            quantizers, scoring, rank-agreement metrics (+ self-check)
+  run_timeline.py    model loading, attention hook, counterfactual eviction
+  stages.py          stage 1 and stage 2 verification (data + checks)
+  stages_page.py     the stages page (HTML/JS)
+  app.py             local web server: stages page, full pipeline, live runs
+  build_demo.py      full-pipeline page
+  build_stages.py    offline stages page
+tests/               verification suites (python -m tests.<name>)
+legacy/              the earlier ranking-only experiment, kept for the record
+docs/
+  CONTEXT.md         project context for new contributors (start here)
+  STAGES.md          stage-by-stage research, decisions, pass criteria, results
+  PLAN.md            plan, the kill test, open decisions
+  FINDINGS.md        exploratory findings (before stage-by-stage verification)
+reports/             test reports (STAGE1_REPORT_v1.md = the first, failed version of check 1.5)
+results/             result records (JSON): stage1/, stage1_v1/, stage2/, timeline/, ranking/
 demo/                offline pages and screenshots
-docs/CONTEXT.md      project context for new contributors
 ```
 
 ## Known limitations and open decisions

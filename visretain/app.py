@@ -1,6 +1,6 @@
 """VisRetain live app: drop in your own image, watch the model answer and evict, live.
 
-    python3 app.py            # then open http://localhost:8765
+    python -m visretain.app      # then open http://localhost:8765
 
 Fully local and offline: the model runs on this machine, nothing is sent anywhere.
 Standard library server, one run at a time (the GPU can hold one model run).
@@ -18,15 +18,15 @@ from pathlib import Path
 import torch
 from transformers.generation.streamers import BaseStreamer
 
-import run_timeline as rt
-import build_demo as bd
-import stages
-import stages_page as sp
+from . import run_timeline as rt
+from . import build_demo as bd
+from . import stages
+from . import stages_page as sp
 
-from cfg import CFG
+from .cfg import CFG, ROOT, RESULTS
 PORT = CFG["server"]["port"]
 SHOW_LAYER = CFG["display_layer"]   # the layer the live view draws
-OUT = Path("results_live")
+OUT = RESULTS / "live"                 # live uploads (git-ignored: may be personal photos)
 MAX_UPLOAD = int(CFG["server"]["max_upload_mb"] * 1024 * 1024 * 4 / 3)  # base64 inflates by 4/3
 
 # rt.CTX already holds the config's settings, identical to the batch runs.
@@ -249,7 +249,7 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     global PAGE_HTML, STAGES_HTML
     # the live page = the static demo page, plus the pilot images, in live mode
-    data = bd.page_data("results_timeline", "results_acc")
+    data = bd.page_data(RESULTS / "timeline", RESULTS / "ranking")
     PAGE_HTML = (bd.PAGE.replace("__DATA__", json.dumps(data).replace("</", "<\\/"))
                  .replace("__LIVE__", "true"))
 
@@ -257,7 +257,7 @@ def main():
     # so stage 1 shows the real resize rather than an already-resized image
     # The cached files' bytes are sent unchanged (no re-encoding), so a sample run on the
     # page sees exactly the pixels the batch tests saw.
-    cache = Path(rt.__file__).parent / CFG["pilot"]["cache_dir"]
+    cache = ROOT / CFG["pilot"]["cache_dir"]
     samples = [{"img": base64.b64encode((cache / f"{it['id']}.jpg").read_bytes()).decode(),
                 "label": it["question"]} for it in rt.build_items(len(CFG["pilot"]["items"]))]
     STAGES_HTML = (sp.PAGE.replace("__DATA__", json.dumps({"samples": samples}).replace("</", "<\\/"))

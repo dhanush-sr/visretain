@@ -39,7 +39,7 @@ def ci(a, n=10000, seed=0):
     return float(np.percentile(m, 2.5)), float(np.percentile(m, 97.5))
 
 
-def main(d="results_acc"):
+def main(d="results/ranking"):
     print(f"=== ACCUMULATED (H2O/EMA-style) scoring :: {d} ===")
     print("statistics per item; n = number of items\n")
 
@@ -101,4 +101,4 @@ def main(d="results_acc"):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else "results_acc")
+    main(sys.argv[1] if len(sys.argv) > 1 else "results/ranking")

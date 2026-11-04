@@ -11,7 +11,7 @@ byte-identical inputs and the decode path cannot diverge. This is the cheapest d
 that answers the gate, and it is what the Top-4 gaps note prescribes for stage one.
 
 Usage:
-    python3 run_kill_test.py --items 20 --max-new-tokens 200
+    python -m legacy.run_kill_test --items 20 --max-new-tokens 200
 """
 
 import argparse, json, time
@@ -22,7 +22,8 @@ import torch
 from transformers.modeling_utils import ALL_ATTENTION_FUNCTIONS
 from transformers.integrations.sdpa_attention import sdpa_attention_forward
 
-import visretain as vr
+from visretain import core as vr
+from visretain.cfg import RESULTS
 
 MODEL_ID = "Qwen/Qwen2.5-VL-3B-Instruct"
 ARMS = [("B1_int4", 4), ("B2_int2", 2)]   # B0 (FP16) is the reference scoring
@@ -228,7 +229,7 @@ def main():
     ap.add_argument("--every", type=int, default=20,
                     help="compute instantaneous metrics every N decode steps")
     ap.add_argument("--dataset", type=str, default="pilot", choices=["pilot","gqa"])
-    ap.add_argument("--out", type=str, default="results")
+    ap.add_argument("--out", type=str, default=str(RESULTS / "ranking"))
     args = ap.parse_args()
 
     CTX["budget_frac"] = args.budget_frac

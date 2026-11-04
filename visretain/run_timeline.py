@@ -29,7 +29,7 @@ mediocre proxy for true future utility. GQA evidence boxes are the rigorous vers
 Future Missed Mass.
 
 Usage:
-    python3 run_timeline.py --items 8          # all settings from config.json
+    python -m visretain.run_timeline --items 8   # all settings from config.json
 """
 
 import argparse, json, time
@@ -40,9 +40,9 @@ import torch
 from transformers.modeling_utils import ALL_ATTENTION_FUNCTIONS
 from transformers.integrations.sdpa_attention import sdpa_attention_forward
 
-import visretain as vr
+from . import core as vr
 
-from cfg import CFG, snapshot
+from .cfg import CFG, ROOT, RESULTS, snapshot
 MODEL_ID = CFG["model_id"]
 
 # Arms come from the configured bit widths, e.g. [16, 4, 2] -> fp16, int4, int2.
@@ -225,7 +225,7 @@ def build_items(n):
     """The first n pilot images, ORIGINAL size. Downloaded once into the cache folder,
     then read from disk, so everything works offline afterwards."""
     from PIL import Image
-    cache = Path(__file__).parent / CFG["pilot"]["cache_dir"]
+    cache = ROOT / CFG["pilot"]["cache_dir"]
     cache.mkdir(parents=True, exist_ok=True)
     out = []
     for cid, q in CFG["pilot"]["items"][:n]:
@@ -250,7 +250,7 @@ def main():
                     help="your own image: a file path or URL (overrides the pilot set)")
     ap.add_argument("--question", type=str, default="",
                     help="question to ask about --image")
-    ap.add_argument("--out", type=str, default="results_timeline")
+    ap.add_argument("--out", type=str, default=str(RESULTS / "timeline"))
     args = ap.parse_args()
 
     CTX["keep_frac"], CTX["recent"] = args.keep_frac, args.recent

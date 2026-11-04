@@ -98,7 +98,7 @@ First run on the skier photo (COCO 785, 640 × 425): **all six checks pass.**
   at 38 = 15 + 23 = start + max(rows, cols), not start + 345. Qwen advances its position
   counter by the image's larger side, not its token count.
 
-### Results — batch, 13 images (`STAGE1_REPORT.md`)
+### Results — batch, 13 images (`reports/STAGE1_REPORT.md`)
 | Check | Images passing |
 |---|---|
 | 1.1 resize rule | 13 / 13 |
@@ -163,7 +163,7 @@ v1 failure (2, 4), the changed square's token moved by ~0.4 and **every other to
 
 Squares whose *edited* image overflows are reported as failures of 1.5a, not dropped.
 
-### Results — batch v2, 13 images (`STAGE1_REPORT.md`; v1 kept as `STAGE1_REPORT_v1.md`)
+### Results — batch v2, 13 images (`reports/STAGE1_REPORT.md`; v1 kept as `reports/STAGE1_REPORT_v1.md`)
 **Every pass/fail check passed on all 13 images.**
 
 | Check | Images passing |
@@ -255,7 +255,7 @@ checks are run on deliberately broken versions of our computation, each of which
 If any control passes, the corresponding check has no power and its result means nothing.
 
 
-### Results — batch, 13 images (`STAGE2_REPORT.md`)
+### Results — batch, 13 images (`reports/STAGE2_REPORT.md`)
 **All six checks pass on all 13 images** (the 10 pilot photos and the three edge cases).
 
 | Check | Images passing |

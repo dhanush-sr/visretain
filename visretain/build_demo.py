@@ -1,7 +1,7 @@
 """Build the VisRetain demo: one self-contained HTML file, opens offline in any browser.
 
-    python3 build_demo.py                       # reads results_timeline/, results_acc/
-    python3 build_demo.py --runs results_mine   # e.g. a run on your own image
+    python -m visretain.build_demo              # reads results/timeline, results/ranking
+    python -m visretain.build_demo --runs results/mine   # e.g. a run on your own image
 
 Everything shown comes from real Qwen2.5-VL-3B runs. Eviction is counterfactual (the
 model is not fed the reduced cache) and evidence is attention-defined; the page says so.
@@ -12,7 +12,7 @@ from pathlib import Path
 
 import numpy as np
 
-from cfg import CFG
+from .cfg import CFG, RESULTS, DEMO
 # the evicting arms, from the configured bit widths: [16, 4, 2] -> fp16, int4, int2
 ARMS = [("fp16" if b >= 16 else f"int{b}") for b in CFG["quant"]["bits"]]
 
@@ -571,9 +571,9 @@ def page_data(runs, ranking):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--runs", default="results_timeline")
-    ap.add_argument("--ranking", default="results_acc")
-    ap.add_argument("--out", default="demo/visretain_demo.html")
+    ap.add_argument("--runs", default=str(RESULTS / "timeline"))
+    ap.add_argument("--ranking", default=str(RESULTS / "ranking"))
+    ap.add_argument("--out", default=str(DEMO / "visretain_demo.html"))
     a = ap.parse_args()
 
     data = page_data(a.runs, a.ranking)

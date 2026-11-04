@@ -11,21 +11,12 @@ venv/
 data/
 
 # Live uploads: may contain personal photos, never commit
-results_live/
+results/live/
 
-# Superseded / scratch runs (kept locally, not part of the record)
-results_main/
-results_pilot/
-results_smoke/
-results_tl_smoke/
-demo/screens/_test_input.jpg
-
-# Team-internal working notes and slides
-MORNING.md
-DECK_REVIEW.md
-SLIDE15.md
-REVIEW_PACKET.md
+# Local-only material: old scratch runs, working notes, slides
+_local/
 *.pptx
+demo/screens/_test_input.jpg
 
 # OS
 .DS_Store

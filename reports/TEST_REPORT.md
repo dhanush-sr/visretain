@@ -30,10 +30,10 @@ Run 2026-11-04 08:10 on the real Qwen2.5-VL-3B-Instruct, local (Apple M-series, 
 | B1 live card shown | PASS | upload card visible when served by app.py |
 | B2 pilot images present | PASS | 8 images in the picker |
 | B3 playback | PASS | Play advanced to step 14 |
-| B4 live updates arrive | PASS | mid-run: step 48, 48 tokens shown, evicted so far per arm [155, 155, 158] |
+| B4 live updates arrive | PASS | mid-run: step 2, 2 tokens shown, evicted so far per arm [119, 119, 117] |
 | B5 evidence withheld until the end | PASS | evidence counter mid-run reads 'after the answer' |
-| B6 switching images mid-run is safe | PASS | live item kept updating while another image was shown (step 48 -> 72); pilot image untouched (160 tokens) |
-| B7 evidence revealed at the end | PASS | FP16 evidence counter '6 / 34'; layer picker has 8 layers; status: Done in 62.3s. The outlined tokens are the evidence the answer relied on late; r |
+| B6 switching images mid-run is safe | PASS | live item kept updating while another image was shown (step 2 -> 10); pilot image untouched (160 tokens) |
+| B7 evidence revealed at the end | PASS | FP16 evidence counter '6 / 34'; layer picker has 8 layers; status: Done in 79.1s. The outlined tokens are the evidence the answer relied on late; r |
 | B8 charts drawn | PASS | 3 survival lines drawn |
 | B9 results tab | PASS | results tab shows the FP16 evidence-loss figure computed from the data (80.6%) |
 | B10 no JavaScript errors | PASS | none |

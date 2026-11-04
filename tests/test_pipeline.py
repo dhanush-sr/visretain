@@ -1,6 +1,6 @@
 """End-to-end checks on the REAL model. Run before trusting any number or demo.
 
-    python3 test_pipeline.py        # ~5 minutes on an M-series Mac, needs the GPU free
+    python -m tests.test_pipeline   # ~5 minutes on an M-series Mac, needs the GPU free
 
 Each check targets a specific way the instrument could silently produce wrong results:
 
@@ -11,7 +11,7 @@ Each check targets a specific way the instrument could silently produce wrong re
   T5 record integrity   budgets respected, death steps in range, lengths consistent
   T6 live app over HTTP the real server: a full run, plus bad inputs and a busy GPU
 
-Writes TEST_REPORT.md with every result, pass or fail.
+Writes reports/TEST_REPORT.md with every result, pass or fail.
 """
 
 import base64, io, json, queue, threading, time, traceback, urllib.request, urllib.error
@@ -23,8 +23,9 @@ from PIL import Image
 from transformers.modeling_utils import ALL_ATTENTION_FUNCTIONS
 from transformers.integrations.sdpa_attention import sdpa_attention_forward
 
-import run_timeline as rt
-import app
+from visretain import run_timeline as rt
+from visretain import app
+from visretain.cfg import REPORTS          # (RESULTS below is this file's own list of checks)
 
 MAX_NEW = 80   # shorter than the config default only to keep the test fast
 RESULTS = []
@@ -117,7 +118,7 @@ def main():
     try:
         big = img.resize((4000, 3000))
         rec_d = rt.run_item(model, proc, dev, {"image": big, "question": q}, 0, 20)
-        from cfg import CFG
+        from visretain.cfg import CFG
         cap = CFG["image"]["max_pixels"] // (28 * 28)      # one visual token per 28x28 px
         check("T4 image scale cap", rec_d["n_visual"] <= cap,
               f"4000x3000 photo -> {rec_d['n_visual']} visual tokens "
@@ -209,13 +210,13 @@ def write_report():
     n_pass = sum(ok for _, ok, _ in RESULTS)
     lines = [f"# VisRetain test report", "",
              f"Run {time.strftime('%Y-%m-%d %H:%M')} on the real Qwen2.5-VL-3B-Instruct, "
-             f"local (Apple M-series, MPS). Command: `python3 test_pipeline.py`.", "",
+             f"local (Apple M-series, MPS). Command: `python -m tests.test_pipeline`.", "",
              f"**{n_pass} / {len(RESULTS)} checks passed.**", "",
              "| Check | Result | Detail |", "|---|---|---|"]
     for name, ok, detail in RESULTS:
         lines.append(f"| {name} | {'PASS' if ok else '**FAIL**'} | {detail} |")
-    Path("TEST_REPORT.md").write_text("\n".join(lines) + "\n")
-    print(f"\n{n_pass}/{len(RESULTS)} passed -> TEST_REPORT.md")
+    (REPORTS / "TEST_REPORT.md").write_text("\n".join(lines) + "\n")
+    print(f"\n{n_pass}/{len(RESULTS)} passed -> reports/TEST_REPORT.md")
 
 
 if __name__ == "__main__":

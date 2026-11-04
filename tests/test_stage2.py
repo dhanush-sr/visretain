@@ -1,9 +1,9 @@
 """Stage 2 batch verification: every check, plus the negative controls, on every test image.
 
-    python3 test_stage2.py          # ~10 minutes; needs the GPU free (stop app.py first)
+    python -m tests.test_stage2     # ~10 minutes; needs the GPU free (stop app.py first)
 
 Same images as stage 1 (all pilot photos at original size, plus the three edge cases), each
-with its pilot question. Writes STAGE2_REPORT.md and results_stage2/*.json.
+with its pilot question. Writes reports/STAGE2_REPORT.md and results/stage2/*.json.
 """
 
 import json, time
@@ -11,10 +11,10 @@ from pathlib import Path
 
 import numpy as np
 
-import run_timeline as rt
-import stages
-from cfg import CFG
-from test_stage1 import edge_cases
+from visretain import run_timeline as rt
+from visretain import stages
+from visretain.cfg import CFG, RESULTS, REPORTS
+from tests.test_stage1 import edge_cases
 
 
 def main():
@@ -24,7 +24,7 @@ def main():
     images = [(f"pilot {it['id']}", it["image"], it["question"]) for it in pilots] + \
              [(n, im, CFG["generation"]["default_question"]) for n, im in edge_cases(pilots[5]["image"])]
 
-    out = Path("results_stage2"); out.mkdir(exist_ok=True)
+    out = RESULTS / "stage2"; out.mkdir(parents=True, exist_ok=True)
     rows = []
     for name, img, q in images:
         t0 = time.time()
@@ -44,7 +44,7 @@ def main():
     names = {i: rows[0]["checks"][i]["name"] for i in ids}
     lines = ["# Stage 2 batch report", "",
              f"Run {time.strftime('%Y-%m-%d %H:%M')} on Qwen2.5-VL-3B-Instruct (local, MPS). "
-             f"Command: `python3 test_stage2.py`. Pass criteria: STAGES.md, stage 2.", "",
+             f"Command: `python -m tests.test_stage2`. Pass criteria: STAGES.md, stage 2.", "",
              f"**{len(rows)} images; every check passed on "
              f"{sum(all(c['pass'] for c in r['checks'].values()) for r in rows)} of {len(rows)}.**", "",
              "| Check | Images passing |", "|---|---|"]
@@ -66,8 +66,8 @@ def main():
     fails = [(r["name"], c) for r in rows for c in r["checks"].values() if not c["pass"]]
     if fails:
         lines += ["", "## Failures", ""] + [f"- **{n}**, check {c['id']}: {c['detail']}" for n, c in fails]
-    Path("STAGE2_REPORT.md").write_text("\n".join(lines) + "\n")
-    print("\nwrote STAGE2_REPORT.md")
+    (REPORTS / "STAGE2_REPORT.md").write_text("\n".join(lines) + "\n")
+    print("\nwrote reports/STAGE2_REPORT.md")
 
 
 if __name__ == "__main__":

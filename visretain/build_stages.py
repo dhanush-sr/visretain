@@ -1,7 +1,7 @@
 """Build the OFFLINE stages page: real stage-1 and stage-2 runs on one image, replayed without a model.
 
-    python3 build_stages.py                 # pilot image from config (default: the skier)
-    python3 build_stages.py --pilot 3       # another pilot image (index into config)
+    python -m visretain.build_stages              # pilot image from config (default: the skier)
+    python -m visretain.build_stages --pilot 3    # another pilot image (index into config)
 
 Every square's causal test is precomputed, so "click any square" works offline too.
 Takes ~10 minutes (one vision-encoder pass per square). Needs the GPU free.
@@ -10,16 +10,16 @@ Takes ~10 minutes (one vision-encoder pass per square). Needs the GPU free.
 import argparse, json, time
 from pathlib import Path
 
-import run_timeline as rt
-import stages
-import stages_page as sp
-from cfg import CFG
+from . import run_timeline as rt
+from . import stages
+from . import stages_page as sp
+from .cfg import CFG, DEMO
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--pilot", type=int, default=CFG["stage1"]["offline_pilot"])
-    ap.add_argument("--out", default="demo/stages.html")
+    ap.add_argument("--out", default=str(DEMO / "stages.html"))
     a = ap.parse_args()
 
     model, proc, dev = rt.load_model()

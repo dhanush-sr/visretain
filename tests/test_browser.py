@@ -1,9 +1,9 @@
 """Drive the live app in a real browser, like a user would. Needs app.py running.
 
-    python3 app.py &            # in another terminal
-    python3 test_browser.py
+    python -m visretain.app &       # in another terminal
+    python -m tests.test_browser
 
-Checks the parts test_pipeline.py cannot see: the page itself. Appends to TEST_REPORT.md.
+Checks the parts test_pipeline.py cannot see: the page itself. Appends to reports/TEST_REPORT.md.
 Uses the system Google Chrome through Playwright (no browser download needed).
 """
 
@@ -13,7 +13,8 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 URL = "http://localhost:8765/full"     # "/" is now the stages page
-SHOTS = Path("demo/screens"); SHOTS.mkdir(parents=True, exist_ok=True)
+from visretain.cfg import DEMO, RESULTS as RESULTS_DIR, REPORTS   # RESULTS below = this file's checks
+SHOTS = DEMO / "screens"; SHOTS.mkdir(parents=True, exist_ok=True)
 IMG_URL = "http://images.cocodataset.org/val2017/000000000785.jpg"
 QUESTION = "What is the person wearing, what are they doing, and what is around them?"
 RESULTS = []
@@ -91,8 +92,8 @@ def main():
         # results tab
         page.click("#t-res"); time.sleep(0.5)
         page.screenshot(path=str(SHOTS / "results.png"), full_page=True)
-        import build_demo
-        want = f"{build_demo.summarise_timeline('results_timeline')['fp16']*100:.1f}%"
+        from visretain import build_demo
+        want = f"{build_demo.summarise_timeline(RESULTS_DIR / 'timeline')['fp16']*100:.1f}%"
         check("B9 results tab", want in page.inner_text("#res"),
               f"results tab shows the FP16 evidence-loss figure computed from the data ({want})")
 
@@ -103,7 +104,7 @@ def main():
              f"**{sum(ok for _,ok,_ in RESULTS)} / {len(RESULTS)} passed.** "
              f"Screenshots in `demo/screens/`.", "", "| Check | Result | Detail |", "|---|---|---|"]
     lines += [f"| {n} | {'PASS' if ok else '**FAIL**'} | {d} |" for n, ok, d in RESULTS]
-    rep = Path("TEST_REPORT.md")
+    rep = REPORTS / "TEST_REPORT.md"
     old = rep.read_text() if rep.exists() else ""
     old = old.split("\n## Browser checks")[0].rstrip("\n") + "\n"   # replace, don't append twice
     rep.write_text(old + "\n".join(lines) + "\n")

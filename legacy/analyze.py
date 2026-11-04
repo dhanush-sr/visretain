@@ -40,7 +40,7 @@ def boot_ci(vals, n=2000, seed=0):
     return float(np.percentile(m, 2.5)), float(np.percentile(m, 97.5))
 
 
-def main(d="results_pilot"):
+def main(d="results/ranking"):
     rows = load(d)
     if not rows:
         print("no records in", d); return
@@ -102,4 +102,4 @@ def main(d="results_pilot"):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else "results_pilot")
+    main(sys.argv[1] if len(sys.argv) > 1 else "results/ranking")
